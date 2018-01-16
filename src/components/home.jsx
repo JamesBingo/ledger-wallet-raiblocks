@@ -1,77 +1,52 @@
-"use strict";
-const bip39 = require( "bip39" );
-const bigi = require( 'bigi' )
+require('ledgerco/browser/ledger.min.js');
 
-const React = require( 'react' );
-const ReactDOM = require( 'react-dom' );
+import React, { Component } from 'react';
 
-const Row = require( 'react-bootstrap' ).Row;
-const Col = require( 'react-bootstrap' ).Col;
-const Grid = require( 'react-bootstrap' ).Grid;
-const Table = require( 'react-bootstrap' ).Table;
+// TODO:
+// this all needs refactor to services - - - - - -  - - - -
 
-const ec = require( 'elliptic' ).ec;
-const CryptoJS = require( 'crypto-js' );
+const bip39 = require('bip39');
+const bigi = require('bigi')
+const ec = require('elliptic').ec;
+const CryptoJS = require('crypto-js');
 
 const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const base58 = require( 'base-x' )( BASE58 );
-
-const comm_node = require('ledgerco/src/ledger-comm-node');
-
-process.stdout.write( "STARTED comm_node \n" );
-process.stdout.write( JSON.stringify(comm_node) + "\n" );
-process.stdout.write( comm_node + "\n" );
-process.stdout.write( Object.getOwnPropertyNames(comm_node) + "\n" );
-process.stdout.write( "SUCCESS comm_node \n" );
-
 const net = 'TestNet';
-
 const mnemonic = "online ramp onion faculty trap clerk near rabbit busy gravity prize employ exit horse found slogan effort dash siren buzz sport pig coconut element";
 
 const bip44_path =
-    "8000002C"
-    + "80000378"
-    + "80000000"
-    + "80000000"
-    + "80000000";
+  "8000002C" +
+  "80000378" +
+  "80000000" +
+  "80000000" +
+  "80000000";
 
-var ledgerDeviceInfo = undefined;
+let ledgerDeviceInfo = undefined,
+    publicKeyInfo = undefined,
+    publicKey = undefined,
+    accounts = undefined,
+    signature = undefined,
+    signatureInfo = undefined,
+    balance = undefined,
+    balanceInfo = undefined,
+    encodeTransactionResponse = undefined,
+    signedTransaction = undefined,
+    sentTransaction = undefined,
+    sentTransactionInfo = undefined,
+    bip44Path = undefined;
 
-var publicKeyInfo = undefined;
+let getLedgerDeviceInfo = function() {
+    console.log( "getLedgerDeviceInfo" );
 
-var publicKey = undefined;
-
-var accounts = undefined;
-
-var signature = undefined;
-
-var signatureInfo = undefined;
-
-var balance = undefined;
-
-var balanceInfo = undefined;
-
-var encodeTransactionResponse = undefined;
-
-var signedTransaction = undefined;
-
-var sentTransaction = undefined;
-
-var sentTransactionInfo = undefined;
-
-var bip44Path = undefined;
-
-var getLedgerDeviceInfo = function() {
-    process.stdout.write( "getLedgerDeviceInfo \n" );
-
-    comm_node.list_async().then( function( result ) {
+    ledger.comm_u2f.create_async().then( function( result ) {
         if ( result.length == 0 ) {
-            process.stdout.write( "getLedgerDeviceInfo \"No device found\"\n" );
+            console.log( "getLedgerDeviceInfo \"No device found\"\n" );
             ledgerDeviceInfo = "Failure : No device found";
             renderApp();
         } else {
-            comm_node.create_async().then( function( comm ) {
-                var deviceInfo = comm.device.getDeviceInfo();
+            ledger.comm_u2f.create_async().then( function( comm ) {
+                let deviceInfo = comm.device.getDeviceInfo();
                 comm.device.close();
 
                 ledgerDeviceInfo = "Success: " + JSON.stringify( deviceInfo );
@@ -88,20 +63,20 @@ var getLedgerDeviceInfo = function() {
     } );
 }
 
-var getPublicKeyInfo = function() {
+let getPublicKeyInfo = function() {
     publicKey = undefined;
     publicKeyInfo = undefined;
-    comm_node.create_async().then( function( comm ) {
-        var message = Buffer.from( "8004000000" + bip44_path, "hex" );
-        var validStatus = [0x9000];
+    ledger.comm_u2f.create_async().then( function( comm ) {
+        let message = Buffer.from( "8004000000" + bip44_path, "hex" );
+        let validStatus = [0x9000];
         comm.exchange( message.toString( "hex" ), validStatus ).then( function( response ) {
             comm.device.close();
 
-            // process.stdout.write( "Public Key Response [" + response.length + "] " + response + "\n" );
+            // console.log( "Public Key Response [" + response.length + "] " + response + "\n" );
 
-            var publicKey = response.substring( 0, 130 );
+            let publicKey = response.substring( 0, 130 );
 
-            process.stdout.write( "Public Key [" + publicKey.length + "] " + publicKey + "\n" );
+            console.log( "Public Key [" + publicKey.length + "] " + publicKey + "\n" );
 
             publicKeyInfo = publicKey;
 
@@ -109,7 +84,7 @@ var getPublicKeyInfo = function() {
             setAllLedgerInfoTimer();
         } ).catch( function( reason ) {
             comm.device.close();
-            process.stdout.write( "error reason " + reason + "\n" );
+            console.log( "error reason " + reason + "\n" );
             publicKeyInfo = "An error occured[1]: " + reason;
             renderApp();
             setAllLedgerInfoTimer();
@@ -117,22 +92,22 @@ var getPublicKeyInfo = function() {
     } )
         .catch( function( reason ) {
             comm.device.close();
-            process.stdout.write( "error reason " + reason + "\n" );
+            console.log( "error reason " + reason + "\n" );
             publicKeyInfo = "An error occured[2]: " + reason;
             renderApp();
             setAllLedgerInfoTimer();
         } );
 }
 
-var allLedgerInfoPollIx = 0;
+let allLedgerInfoPollIx = 0;
 
-var setAllLedgerInfoTimer = function() {
+let setAllLedgerInfoTimer = function() {
     setImmediate( getAllLedgerInfo );
 }
 
-var getAllLedgerInfo = function() {
-    process.stdout.write( "getAllLedgerInfo " + allLedgerInfoPollIx + "\n" );
-    var resetPollIndex = false;
+let getAllLedgerInfo = function() {
+    console.log( "getAllLedgerInfo " + allLedgerInfoPollIx + "\n" );
+    let resetPollIndex = false;
     switch ( allLedgerInfoPollIx ) {
         case 0:
             getLedgerDeviceInfo();
@@ -154,66 +129,21 @@ var getAllLedgerInfo = function() {
 
 setAllLedgerInfoTimer();
 
-var App = React.createClass( {
 
-    getInitialState: function() {
-        return {
-        };
-    },
+let createSignature = function() {
+    let text = encodeTransactionResponse;
 
-    render: function() {
-        return (
-            <Grid>
-                <h3>Ledger NodeJS</h3>
-                <Row>
-                    <Col>
-                        Public Key
-                        <p style={{ wordBreak: 'break-all' }}><code>{publicKeyInfo}</code></p>
-                        <p>Destination Address <input type="text" size="40" id="toAddress" placeholder="Destination Address" /></p>
-                        <p>Amount <input type="number" step="0.000001" min="1" id="amount" size="30" /></p>
-                        <p>
-                            <button onClick={( e ) => encodeTransaction()}>Encode</button>
-                        </p>
-                        <p>Encoded Transaction, before signing</p>
-                        <p style={{ wordBreak: 'break-all' }}>
-                            {encodeTransactionResponse}
-                        </p>
-                        <p>
-                            <button onClick={( e ) => createSignature()}>Create Signature</button>
-                        </p>
-                        Signature
-                            <p style={{ wordBreak: 'break-all' }}><code>{signatureInfo}</code></p>
-                        <p>
-                            <button onClick={( e ) => signTransaction()}>Sign Transaction</button>
-                        </p>
-                        Signed Transaction
-                            <p style={{ wordBreak: 'break-all' }}><code>{signedTransaction}</code></p>
-                        <p>
-                            <button onClick={( e ) => sendTransaction()}>Send Transaction</button>
-                        </p>
-                        Sent Transaction
-                        <p style={{ wordBreak: 'break-all' }}><code>{sentTransactionInfo}</code></p>
-                    </Col>
-                </Row>
-            </Grid>
-        );
-    }
-} );
-
-var createSignature = function() {
-    var text = encodeTransactionResponse;
-
-    var textToSign = text + bip44_path;
+    let textToSign = text + bip44_path;
 
     signature = undefined;
     signatureInfo = "Ledger Signing Text of Length [" + textToSign.length + "], Please Confirm Using the Device's Buttons. " + textToSign;
     renderApp();
 
-    process.stdout.write( signatureInfo + "\n" );
+    console.log( signatureInfo + "\n" );
 
-    var validStatus = [0x9000];
+    let validStatus = [0x9000];
 
-    var messages = [];
+    let messages = [];
 
     let bufferSize = 255 * 2;
     let offset = 0;
@@ -233,28 +163,28 @@ var createSignature = function() {
 
         let chunkLength = chunk.length / 2;
 
-        process.stdout.write( "Ledger Signature chunkLength " + chunkLength + "\n" );
+        console.log( "Ledger Signature chunkLength " + chunkLength + "\n" );
 
         let chunkLengthHex = chunkLength.toString( 16 );
         while ( chunkLengthHex.length < 2 ) {
             chunkLengthHex = "0" + chunkLengthHex;
         }
 
-        process.stdout.write( "Ledger Signature chunkLength hex " + chunkLengthHex + "\n" );
+        console.log( "Ledger Signature chunkLength hex " + chunkLengthHex + "\n" );
 
         messages.push( "8002" + p1 + "00" + chunkLengthHex + chunk );
         offset += chunk.length;
     }
 
-    comm_node.create_async( 0, false ).then( function( comm ) {
+    ledger.comm_u2f.create_async( 0, false ).then( function( comm ) {
         for ( let ix = 0; ix < messages.length; ix++ ) {
             let message = messages[ix];
-            process.stdout.write( "Ledger Message (" + ix +
+            console.log( "Ledger Message (" + ix +
                 "/" + messages.length +
                 ") " + message + "\n" );
 
             comm.exchange( message, validStatus ).then( function( response ) {
-                process.stdout.write( "Ledger Signature Response " + response + "\n" );
+                console.log( "Ledger Signature Response " + response + "\n" );
                 if ( response != "9000" ) {
                     comm.device.close();
 
@@ -276,53 +206,53 @@ var createSignature = function() {
                      */
 
                     let rLenHex = response.substring( 6, 8 );
-                    // process.stdout.write( "Ledger Signature rLenHex " + rLenHex + "\n" );
+                    // console.log( "Ledger Signature rLenHex " + rLenHex + "\n" );
                     let rLen = parseInt( rLenHex, 16 ) * 2;
-                    // process.stdout.write( "Ledger Signature rLen " + rLen + "\n" );
+                    // console.log( "Ledger Signature rLen " + rLen + "\n" );
                     let rStart = 8;
-                    // process.stdout.write( "Ledger Signature rStart " + rStart + "\n" );
+                    // console.log( "Ledger Signature rStart " + rStart + "\n" );
                     let rEnd = rStart + rLen;
-                    // process.stdout.write( "Ledger Signature rEnd " + rEnd + "\n" );
+                    // console.log( "Ledger Signature rEnd " + rEnd + "\n" );
 
                     while ( ( response.substring( rStart, rStart + 2 ) == "00" ) && ( ( rEnd - rStart ) > 64 ) ) {
                         rStart += 2;
                     }
 
                     let r = response.substring( rStart, rEnd );
-                    process.stdout.write( "Ledger Signature R [" + rStart + "," + rEnd + "]:" + ( rEnd - rStart ) + " " + r + "\n" );
+                    console.log( "Ledger Signature R [" + rStart + "," + rEnd + "]:" + ( rEnd - rStart ) + " " + r + "\n" );
                     let sLenHex = response.substring( rEnd + 2, rEnd + 4 );
-                    // process.stdout.write( "Ledger Signature sLenHex " + sLenHex + "\n" );
+                    // console.log( "Ledger Signature sLenHex " + sLenHex + "\n" );
                     let sLen = parseInt( sLenHex, 16 ) * 2;
-                    // process.stdout.write( "Ledger Signature sLen " + sLen + "\n" );
+                    // console.log( "Ledger Signature sLen " + sLen + "\n" );
                     let sStart = rEnd + 4;
-                    // process.stdout.write( "Ledger Signature sStart " + sStart + "\n" );
+                    // console.log( "Ledger Signature sStart " + sStart + "\n" );
                     let sEnd = sStart + sLen;
-                    // process.stdout.write( "Ledger Signature sEnd " + sEnd + "\n" );
+                    // console.log( "Ledger Signature sEnd " + sEnd + "\n" );
 
                     while ( ( response.substring( sStart, sStart + 2 ) == "00" ) && ( ( sEnd - sStart ) > 64 ) ) {
                         sStart += 2;
                     }
 
                     let s = response.substring( sStart, sEnd );
-                    process.stdout.write( "Ledger Signature S [" + sStart + "," + sEnd + "]:" + ( sEnd - sStart ) + " " + s + "\n" );
+                    console.log( "Ledger Signature S [" + sStart + "," + sEnd + "]:" + ( sEnd - sStart ) + " " + s + "\n" );
 
                     let msgHashStart = sEnd + 4;
                     let msgHashEnd = msgHashStart + 64;
                     let msgHash = response.substring( msgHashStart, msgHashEnd );
-                    process.stdout.write( "Ledger Signature msgHash [" + msgHashStart + "," + msgHashEnd + "] " + msgHash + "\n" );
+                    console.log( "Ledger Signature msgHash [" + msgHashStart + "," + msgHashEnd + "] " + msgHash + "\n" );
 
                     signature = r + s;
                     signatureInfo = "Signature of Length [" + signature.length + "] : " + signature;
-                    process.stdout.write( signatureInfo + "\n" );
+                    console.log( signatureInfo + "\n" );
 
-                    process.stdout.write( "Check Signature of Length [" + checkSignature.length + "] : " + checkSignature + "\n" );
+                    console.log( "Check Signature of Length [" + checkSignature.length + "] : " + checkSignature + "\n" );
                     renderApp();
                 }
             } )
                 .catch( function( reason ) {
                     comm.device.close();
                     signatureInfo = "An error occured[1]: " + reason;
-                    process.stdout.write( "Signature Reponse " + signatureInfo + "\n" );
+                    console.log( "Signature Reponse " + signatureInfo + "\n" );
                     renderApp();
                 } );
         }
@@ -330,14 +260,46 @@ var createSignature = function() {
         .catch( function( reason ) {
             comm.device.close();
             signatureInfo = "An error occured[2]: " + reason;
-            process.stdout.write( "Signature Reponse " + signatureInfo + "\n" );
+            console.log( "Signature Reponse " + signatureInfo + "\n" );
             renderApp();
         } );
 }
 
-var renderApp = function() {
-    ReactDOM.render( <App />, document.getElementById( 'app' ) );
-};
 
-renderApp();
+// end todo refactor - - - - - -  - - - -
 
+
+
+class App extends Component {
+  constructor() {
+    super()
+  }
+
+  render () {
+    return (
+      <div>
+        <h3>Ledger NodeJS</h3>
+        <div>
+          <h2>Public Key</h2>
+          <p style={{ wordBreak: 'break-all' }}><code>{publicKeyInfo}</code></p>
+          <p>Destination Address <input type="text" size="40" id="toAddress" placeholder="Destination Address" /></p>
+          <p>Amount <input type="number" step="0.000001" min="1" id="amount" size="30" /></p>
+          <p><button onClick={( e ) => encodeTransaction()}>Encode</button></p>
+          <p>Encoded Transaction, before signing</p>
+          <p style={{ wordBreak: 'break-all' }}>{encodeTransactionResponse}</p>
+          <p><button onClick={( e ) => createSignature()}>Create Signature</button></p>
+          <h2>Signature</h2>
+          <p style={{ wordBreak: 'break-all' }}><code>{signatureInfo}</code></p>
+          <p><button onClick={( e ) => signTransaction()}>Sign Transaction</button></p>
+          <h2>Signed Transaction</h2>
+          <p style={{ wordBreak: 'break-all' }}><code>{signedTransaction}</code></p>
+          <p><button onClick={( e ) => sendTransaction()}>Send Transaction</button></p>
+          <h2>Sent Transaction</h2>
+          <p style={{ wordBreak: 'break-all' }}><code>{sentTransactionInfo}</code></p>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default App

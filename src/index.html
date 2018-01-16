@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<title>Ledger Wallet for RaiBlocks</title>
+  <meta charset="UTF-8" />
+  <title>Ledger Wallet for RaiBlocks</title>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 </head>
-<script>
-  require('babel-register');
-</script>
 <body>
-  Donation address:
-  <br> xrb_18b8crf6exoup5zgbkfyoutmya53h86wk3qmziqgze3fhpr3j7w49gippz6c
+  <p style="font-weight: bold">
+    Donation address:<br>
+    xrb_18b8crf6exoup5zgbkfyoutmya53h86wk3qmziqgze3fhpr3j7w49gippz6c
+  </p>
   <hr>
   <div id="app"></div>
+  <script>
+    // TODO: fix build scripts
+    //
+    // var bundlePath = './build/bundle.js';
+    // if( typeof process !== 'undefined' && process.env.ENVIRONMENT === 'DEV') {
+    //   console.log(process.env.ENVIRONMENT);
+    //   bundlePath = 'http://localhost:8080/build/bundle.js';
+    // }
+    bundlePath = 'http://localhost:8080/build/bundle.js';
+    var bundleScriptEl = document.createElement('script');
+    bundleScriptEl.src = bundlePath;
+    document.currentScript.parentNode.insertBefore(bundleScriptEl, document.currentScript);
+  </script>
 </body>
-<script>
-  require('node-jsx').install({
-    harmony : true,
-    extension : '.jsx'
-  });
-  require('./components/home.jsx');
-</script>
 </html>
