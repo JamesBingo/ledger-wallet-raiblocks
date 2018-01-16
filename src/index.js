@@ -1,7 +1,6 @@
 "use strict";
 
 require('babel-register');
-// require('./main.js');
 
 var electron = require('electron');
 var app = electron.app; // Module to control application life.
