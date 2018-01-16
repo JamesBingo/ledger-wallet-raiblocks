@@ -16,7 +16,7 @@ const CryptoJS = require( 'crypto-js' );
 const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const base58 = require( 'base-x' )( BASE58 );
 
-const comm_node = require('ledgerco/src/ledger-comm-node');
+const comm_node = require('ledgerco').comm_node;
 
 process.stdout.write( "STARTED comm_node \n" );
 process.stdout.write( JSON.stringify(comm_node) + "\n" );
