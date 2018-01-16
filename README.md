@@ -3,8 +3,11 @@
 To use:
 ```
 npm install;
+npm run dev;
 npm start;
 ```
+
+You can view in browser at `http://localhost:8080/`
 
 ### helpful has tools:
 Hash of a hex message:
