@@ -336,7 +336,7 @@ var createSignature = function() {
 }
 
 var renderApp = function() {
-    ReactDOM.render( <App />, document.getElementById( 'example' ) );
+    ReactDOM.render( <App />, document.getElementById( 'app' ) );
 };
 
 renderApp();
