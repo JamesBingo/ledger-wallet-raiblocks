@@ -1,5 +1,4 @@
-require('ledgerco/browser/ledger.min.js');
-
+import ledger from 'ledgerco';
 import React, { Component } from 'react';
 
 // TODO:
@@ -36,99 +35,87 @@ let ledgerDeviceInfo = undefined,
     sentTransactionInfo = undefined,
     bip44Path = undefined;
 
-let getLedgerDeviceInfo = function() {
-    console.log( "getLedgerDeviceInfo" );
-
-    ledger.comm_u2f.create_async().then( function( result ) {
-        if ( result.length == 0 ) {
-            console.log( "getLedgerDeviceInfo \"No device found\"\n" );
-            ledgerDeviceInfo = "Failure : No device found";
-            renderApp();
-        } else {
-            ledger.comm_u2f.create_async().then( function( comm ) {
-                let deviceInfo = comm.device.getDeviceInfo();
-                comm.device.close();
-
-                ledgerDeviceInfo = "Success: " + JSON.stringify( deviceInfo );
-                renderApp();
-                setAllLedgerInfoTimer();
-            } )
-                .catch( function( reason ) {
-                    comm.device.close();
-                    ledgerDeviceInfo = "An error occured: " + JSON.stringify( reason );
-                    renderApp();
-                    setAllLedgerInfoTimer();
-                } );
-        }
-    } );
+let getLedgerDeviceInfo = () => {
+  ledger.comm_u2f.create_async().then(comm => {
+    if (comm.device){
+      let deviceInfo = comm.device.getDeviceInfo();
+      comm.device.close();
+      ledgerDeviceInfo = 'Success: ' + JSON.stringify( deviceInfo );
+      renderApp();
+      setAllLedgerInfoTimer();
+    } else {
+      console.error('No device found');
+    }
+  }).catch(error => {
+    console.error('An error occured: ' + JSON.stringify(error));
+    renderApp();
+    setAllLedgerInfoTimer();
+  });
 }
 
 let getPublicKeyInfo = function() {
-    publicKey = undefined;
-    publicKeyInfo = undefined;
-    ledger.comm_u2f.create_async().then( function( comm ) {
-        let message = Buffer.from( "8004000000" + bip44_path, "hex" );
-        let validStatus = [0x9000];
-        comm.exchange( message.toString( "hex" ), validStatus ).then( function( response ) {
-            comm.device.close();
+  publicKey = undefined;
+  publicKeyInfo = undefined;
+  ledger.comm_u2f.create_async().then(comm => {
+    let message = Buffer.from( "8004000000" + bip44_path, "hex" );
+    let validStatus = [0x9000];
+    comm.exchange( message.toString( "hex" ), validStatus ).then( function( response ) {
+      comm.device.close();
 
-            // console.log( "Public Key Response [" + response.length + "] " + response + "\n" );
+      // console.log( "Public Key Response [" + response.length + "] " + response + "\n" );
 
-            let publicKey = response.substring( 0, 130 );
+      let publicKey = response.substring( 0, 130 );
 
-            console.log( "Public Key [" + publicKey.length + "] " + publicKey + "\n" );
+      console.log( "Public Key [" + publicKey.length + "] " + publicKey + "\n" );
 
-            publicKeyInfo = publicKey;
+      publicKeyInfo = publicKey;
 
-            renderApp();
-            setAllLedgerInfoTimer();
-        } ).catch( function( reason ) {
-            comm.device.close();
-            console.log( "error reason " + reason + "\n" );
-            publicKeyInfo = "An error occured[1]: " + reason;
-            renderApp();
-            setAllLedgerInfoTimer();
-        } );
-    } )
-        .catch( function( reason ) {
-            comm.device.close();
-            console.log( "error reason " + reason + "\n" );
-            publicKeyInfo = "An error occured[2]: " + reason;
-            renderApp();
-            setAllLedgerInfoTimer();
-        } );
+      renderApp();
+      setAllLedgerInfoTimer();
+    } ).catch(error => {
+      comm.device.close();
+      console.error("error reason " + error + "\n" );
+      publicKeyInfo = "An error occured[1]: " + error;
+      renderApp();
+      setAllLedgerInfoTimer();
+    });
+  }).catch(error => {
+    console.error("error reason " + error);
+    publicKeyInfo = "An error occured[2]: " + error;
+    renderApp();
+    setAllLedgerInfoTimer();
+  });
 }
 
 let allLedgerInfoPollIx = 0;
 
 let setAllLedgerInfoTimer = function() {
-    setImmediate( getAllLedgerInfo );
+  setImmediate( getAllLedgerInfo );
 }
 
 let getAllLedgerInfo = function() {
-    console.log( "getAllLedgerInfo " + allLedgerInfoPollIx + "\n" );
-    let resetPollIndex = false;
-    switch ( allLedgerInfoPollIx ) {
-        case 0:
-            getLedgerDeviceInfo();
-            break;
-        case 1:
-            getPublicKeyInfo();
-            break;
-        default:
-            allLedgerInfoPollIx = 0;
-            resetPollIndex = true;
-    }
-    if ( resetPollIndex ) {
-        // periodically check for a new device, disabled for now to not spam the logs.
-        // setTimeout( getAllLedgerInfo, 10000 );
-    } else {
-        allLedgerInfoPollIx++;
-    }
+  console.log( "getAllLedgerInfo " + allLedgerInfoPollIx + "\n" );
+  let resetPollIndex = false;
+  switch ( allLedgerInfoPollIx ) {
+    case 0:
+      getLedgerDeviceInfo();
+      break;
+    case 1:
+      getPublicKeyInfo();
+      break;
+    default:
+      allLedgerInfoPollIx = 0;
+      resetPollIndex = true;
+  }
+  if ( resetPollIndex ) {
+    // periodically check for a new device, disabled for now to not spam the logs.
+    // setTimeout( getAllLedgerInfo, 10000 );
+  } else {
+    allLedgerInfoPollIx++;
+  }
 };
 
 setAllLedgerInfoTimer();
-
 
 let createSignature = function() {
     let text = encodeTransactionResponse;
@@ -275,30 +262,50 @@ class App extends Component {
     super()
   }
 
+  getPublicKeyInfo() {}
+
+  getLedgerDeviceInfo() {}
+
+  getAllLedgerInfo() {}
+
+  createSignature () {}
+
   render () {
     return (
       <div>
-        <h3>Ledger NodeJS</h3>
-        <div>
-          <h2>Public Key</h2>
-          <p style={{ wordBreak: 'break-all' }}><code>{publicKeyInfo}</code></p>
-          <p>Destination Address <input type="text" size="40" id="toAddress" placeholder="Destination Address" /></p>
-          <p>Amount <input type="number" step="0.000001" min="1" id="amount" size="30" /></p>
-          <p><button onClick={( e ) => encodeTransaction()}>Encode</button></p>
-          <p>Encoded Transaction, before signing</p>
-          <p style={{ wordBreak: 'break-all' }}>{encodeTransactionResponse}</p>
-          <p><button onClick={( e ) => createSignature()}>Create Signature</button></p>
-          <h2>Signature</h2>
-          <p style={{ wordBreak: 'break-all' }}><code>{signatureInfo}</code></p>
-          <p><button onClick={( e ) => signTransaction()}>Sign Transaction</button></p>
-          <h2>Signed Transaction</h2>
-          <p style={{ wordBreak: 'break-all' }}><code>{signedTransaction}</code></p>
-          <p><button onClick={( e ) => sendTransaction()}>Send Transaction</button></p>
-          <h2>Sent Transaction</h2>
-          <p style={{ wordBreak: 'break-all' }}><code>{sentTransactionInfo}</code></p>
+        <header>
+          <p><strong>Donation address</strong><br /></p>
+          <p>xrb_18b8crf6exoup5zgbkfyoutmya53h86wk3qmziqgze3fhpr3j7w49gippz6c</p>
+        </header>
+        <div className="container">
+          <h1>Ledger NodeJS</h1>
+          <div>
+            <h2>Public Key</h2>
+            <p><code>{publicKeyInfo}</code></p>
+            <p>
+              <label>Destination Address</label>
+              <input type="text" id="toAddress" placeholder="Destination Address" />
+            </p>
+            <p>
+              <label>Amount</label>
+              <input type="number" step="0.000001" min="1" id="amount" placeholder="Amount" />
+            </p>
+            <p><button onClick={(e) => encodeTransaction()}>Encode</button></p>
+            <p>Encoded Transaction, before signing</p>
+            <p>{encodeTransactionResponse}</p>
+            <p><button onClick={(e) => createSignature()}>Create Signature</button></p>
+            <h2>Signature</h2>
+            <p><code>{signatureInfo}</code></p>
+            <p><button onClick={(e) => signTransaction()}>Sign Transaction</button></p>
+            <h2>Signed Transaction</h2>
+            <p><code>{signedTransaction}</code></p>
+            <p><button onClick={(e) => sendTransaction()}>Send Transaction</button></p>
+            <h2>Sent Transaction</h2>
+            <p><code>{sentTransactionInfo}</code></p>
+          </div>
         </div>
       </div>
-    );
+    )
   }
 }
 
