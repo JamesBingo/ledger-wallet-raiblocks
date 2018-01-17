@@ -1,23 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<title>Ledger Wallet for RaiBlocks</title>
+  <meta charset="UTF-8" />
+  <title>Ledger Wallet for RaiBlocks</title>
+  <link rel="stylesheet" media="screen" href="screen.css" />
 </head>
-<script>
-  require('babel-register');
-</script>
 <body>
-  Donation address:
-  <br> xrb_18b8crf6exoup5zgbkfyoutmya53h86wk3qmziqgze3fhpr3j7w49gippz6c
-  <hr>
   <div id="app"></div>
+  <script>
+    require('node-jsx').install({harmony : true, extension : '.jsx'});
+    require('./components/home');
+  </script>
 </body>
-<script>
-  require('node-jsx').install({
-    harmony : true,
-    extension : '.jsx'
-  });
-  require('./components/home.jsx');
-</script>
 </html>
