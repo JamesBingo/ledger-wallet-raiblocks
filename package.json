@@ -6,13 +6,10 @@
 	"author": "(https://github.com/coranos)",
 	"repository": "coranos/ledger-wallet-raiblocks",
 	"scripts": {
-		"start": "electron ./src --enable-logging --remote-debugging-port=9222",
-		"dev": "NODE_ENV='development' npm run start",
+		"start": "electron . --enable-logging --remote-debugging-port=9222",
+		"dev": "NODE_ENV='development' webpack",
 		"dist": "build -owl --x64 && build -wl --ia32",
 		"build": "build",
-		"reload": "live-reload ./src --port 35729",
-		"electron-rebuild": "electron-rebuild --force --module_dir . -w node-hid",
-		"postinstall": "npm run electron-rebuild",
 		"test": "./node_modules/mocha/bin/mocha test"
 	},
 	"keywords": [
@@ -25,9 +22,6 @@
 	"build": {
 		"appId": "com.coranos.ledger-wallet-raiblocks"
 	},
-	"_not_dependencies": {
-		"rewire": "^2.5.2"
-	},
 	"dependencies": {
 		"base-x": "^3.0.2",
 		"bigi": "^1.4.0",
@@ -37,17 +31,18 @@
 		"elliptic": "^6.4.0",
 		"ledgerco": "^1.2.1",
 		"react": "^15.0.2",
-		"react-bootstrap": "^0.27.3",
-		"react-dom": "^15.0.2",
-		"require-rebuild": "^v1.2.8"
+		"react-dom": "^15.0.2"
 	},
 	"devDependencies": {
+		"babel-core": "^6.26.0",
+		"babel-loader": "^7.1.2",
+		"babel-preset-env": "^1.6.1",
+		"babel-preset-react": "^6.24.1",
 		"chai": "^4.1.2",
 		"electron": "^1.6.11",
 		"electron-builder": "^19.17.0",
-		"electron-rebuild": "^1.6.0",
 		"electron-reload": "^1.2.2",
 		"mocha": "^3.5.3",
-		"node-jsx": "^0.13.3"
+		"webpack": "^3.10.0"
 	}
 }

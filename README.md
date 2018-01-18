@@ -1,8 +1,13 @@
 # ledger-wallet-raiblocks
 
-To use:
+To install:
 ```
 npm install;
+```
+
+To use run two terminal windows
+```
+npm run dev;
 npm start;
 ```
 

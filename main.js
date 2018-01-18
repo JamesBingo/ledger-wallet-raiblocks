@@ -1,6 +1,8 @@
 'use strict';
 const electron = require('electron');
 const { app, BrowserWindow } = electron;
+const ledgerWorker = require('child_process').fork(`${__dirname}/ledger-async.js`);
+const ipcMain = electron.ipcMain;
 
 // Let electron reloads by itself when webpack watches changes in ./app/
 require('electron-reload')(__dirname);
@@ -20,8 +22,17 @@ process.platform === 'linux' ? app.disableHardwareAcceleration() : null;
 app.on('window-all-closed', () => app.quit());
 
 app.on('ready', () => {
-  let mainWindow = new BrowserWindow({width: 800, height: 600});
-  mainWindow.loadURL(`file://${__dirname}/index.html`);
+  let mainWindow = new BrowserWindow({width: 1200, height: 600});
+  mainWindow.loadURL(`file://${__dirname}/app/index.html`);
   mainWindow.webContents.openDevTools();
   mainWindow.on('closed', () => mainWindow = null);
 });
+
+
+ledgerWorker.on('message', args => {
+  // todo
+})
+
+ipcMain.on('ledger', (event, args) => {
+  // todo
+})
