@@ -1,23 +1,37 @@
 import React, { Component } from 'react'
 
 export default class Home extends React.Component {
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
+    this.state = { ledger: { } }
   }
 
-  encodeTransaction () {}
+  componentDidMount () {
+    window.addEventListener('ledger', (e) => this.updateLedgerData(e))
+  }
 
-  createSignature () {}
+  componentWillUnmount () {
+    window.removeEventListener('ledger', (e) => this.updateLedgerData(e))
+  }
 
-  signTransaction () {}
+  updateLedgerData (e) {
+    this.setState({ ledger: e.detail })
+    console.log(e.detail)
+  }
 
-  sendTransaction () {}
+  getLedgerStatusText () {
+    return this.state.ledger && this.state.ledger.connected ? 'Ledger Connected' : 'Connect your ledger'
+  }
+
+  // encodeTransaction () {}
+  // createSignature () {}
+  // signTransaction () {}
+  // sendTransaction () {}
 
   render () {
     return (
       <div className="container">
-        <h2>Home Component</h2>
-        <p>Keys to follow...</p>
+        <h2>{this.getLedgerStatusText()}</h2>
         {/*
         <h2>Public Key</h2>
         <p><code>{publicKeyInfo}</code></p>

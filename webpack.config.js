@@ -11,7 +11,7 @@ module.exports = {
   watch: true,
 
   entry: [
-    path.join(PATHS.src, 'entry.js')
+    path.join(PATHS.src, 'entry.jsx')
   ],
 
   output: {
@@ -22,13 +22,13 @@ module.exports = {
 
   module: {
     loaders : [
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        options: {
-          presets: ['env']
-        }
-      },
+      // {
+      //   test: /\.js$/,
+      //   loader: 'babel-loader',
+      //   options: {
+      //     presets: ['env']
+      //   }
+      // },
       {
         test:    /\.jsx?$/,
         loader: 'babel-loader',
