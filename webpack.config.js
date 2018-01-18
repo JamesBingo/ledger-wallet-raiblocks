@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const PATHS = {
   src: path.join(__dirname, '/app/src/'),
@@ -39,12 +40,16 @@ module.exports = {
       },
       {
         test: /\.sass$/,
-        loaders: ['style-loader', 'css-loader', 'sass-loader?indentedSyntax']
+        loaders: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader!sass-loader?indentedSyntax'
+        })
       }
     ]
   },
 
   plugins: [
+    new ExtractTextPlugin('[name].css'),
     // new webpack.SourceMapDevToolPlugin()
     // new webpack.HotModuleReplacementPlugin()
   ]
