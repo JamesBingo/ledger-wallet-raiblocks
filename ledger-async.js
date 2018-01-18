@@ -1,13 +1,13 @@
 "use strict";
+const colors = require('colors');
+const ledger = require('ledgerco')
 
-const LEDGER = require('ledgerco')
-
-LEDGER.comm_node.list_async().then(result => {
+ledger.comm_node.list_async().then(result => {
   if (result.length == 0) {
-    process.stdout.write('NO LEDGER CONNECTED \n');
+    console.log('NO LEDGER CONNECTED'.red);
   } else {
-    process.stdout.write('WE HAVE A LEDGER \n');
+    console.log('WE HAVE A LEDGER'.green);
   }
 }).catch((error) => {
-  process.stdout.write('ERROR FETCHING LEDGER LIST \n');
+  console.log('ERROR FETCHING LEDGER LIST'.red);
 })

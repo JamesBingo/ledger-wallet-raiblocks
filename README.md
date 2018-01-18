@@ -2,7 +2,7 @@
 
 To install:
 ```
-npm install;
+npm install && npm run electron-rebuild;
 ```
 
 To use run two terminal windows
