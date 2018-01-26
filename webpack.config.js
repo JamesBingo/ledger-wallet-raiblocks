@@ -39,7 +39,7 @@ module.exports = {
         }
       },
       {
-        test: /\.sass$/,
+        test: /\.(sass|scss)$/,
         loaders: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: 'css-loader!sass-loader?indentedSyntax'
