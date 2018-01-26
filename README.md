@@ -1,19 +1,22 @@
 # ledger-wallet-raiblocks
 
+**Very much work in progress**
+
 To install:
 ```
 npm install && npm run electron-rebuild;
 ```
 
-To use run two terminal windows
+Start dev server watching for changes:
 ```
 npm run dev;
+```
+
+In a seperate terminal, start the app:
+```
 npm start;
 ```
 
-### helpful has tools:
-Hash of a hex message:
-echo -n "<hex>" | shasum -a 256
+# Wallet
 
-Hash of the binary code inside a hex message:
-perl -e 'print pack("H*","<hex>")' | shasum -a 256
+This app uses the excellent js wallet provided by https://github.com/jaimehgb/RaiWebWallet 
